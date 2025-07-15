@@ -1,13 +1,10 @@
 import { HiOutlineSparkles } from 'react-icons/hi2';
 import { IoIosStar } from 'react-icons/io';
+import { getRatings } from '../../../utils/ratings-calculator';
+import { sliceNumberToThousands } from '../../../utils/thousand-slicer';
 
 function ProductDescRatings({ ratings }) {
-  const [five, four, three, two, one] = ratings;
-  const totalRatings = one + two + three + four + five;
-  const overallRating = (
-    (5 * five + 4 * four + 3 * three + 2 * two + 1 * one) /
-    totalRatings
-  ).toFixed(1);
+  const { overallRating, totalRatings } = getRatings(ratings);
 
   const ratingColors = {
     5: 'bg-teal-600',
@@ -30,7 +27,7 @@ function ProductDescRatings({ ratings }) {
             <IoIosStar className="text-2xl text-teal-600" />
           </div>
           <p className="text-sm text-zinc-800">
-            {totalRatings} Verified Buyers
+            {sliceNumberToThousands(totalRatings)} Verified Buyers
           </p>
         </div>
         <div className="ml-7">
