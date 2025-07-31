@@ -1,4 +1,22 @@
-function OrderItemStatus({ status, price, completionDate, StatusIcon }) {
+import { FaShippingFast } from 'react-icons/fa';
+import { FaHouseCircleCheck } from 'react-icons/fa6';
+import { HiReceiptRefund } from 'react-icons/hi2';
+import { MdCancel, MdLocalShipping } from 'react-icons/md';
+
+function OrderItemStatus({ status, price, expectedDeliveryDate }) {
+  console.log(status);
+
+  const statusIconMap = {
+    Shipped: MdLocalShipping,
+    'Out for Delivery': FaShippingFast,
+    Delivered: FaHouseCircleCheck,
+    Refunded: HiReceiptRefund,
+    Cancelled: MdCancel,
+  };
+
+  const StatusIcon = statusIconMap[status];
+  console.log('aaaaaaaaa', StatusIcon);
+
   const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   const months = [
     'Jan',
@@ -14,6 +32,7 @@ function OrderItemStatus({ status, price, completionDate, StatusIcon }) {
     'Nov',
     'Dec',
   ];
+
   return (
     <div className="flex items-center gap-4 py-3">
       <StatusIcon className="text-2xl text-zinc-700" />
@@ -30,8 +49,10 @@ function OrderItemStatus({ status, price, completionDate, StatusIcon }) {
               : 'On '}
           </span>
           <span className="">
-            {days[completionDate.getDay()]}, {completionDate.getDate()}{' '}
-            {months[completionDate.getMonth()]} {completionDate.getFullYear()}
+            {days[expectedDeliveryDate.getDay()]},{' '}
+            {expectedDeliveryDate.getDate()}{' '}
+            {months[expectedDeliveryDate.getMonth()]}{' '}
+            {expectedDeliveryDate.getFullYear()}
           </span>
         </div>
       </div>

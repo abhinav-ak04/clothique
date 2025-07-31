@@ -5,7 +5,7 @@ export const getUserData = async (req, res) => {
   const { OK, NOT_FOUND, INTERNAL_SERVER_ERROR } = StatusCodes;
 
   try {
-    const { userId } = req.params;
+    const userId = req.userId;
 
     const user = await User.findById(userId);
 
@@ -24,18 +24,51 @@ export const getUserData = async (req, res) => {
   }
 };
 
+export const isValidUser = async (req, res) => {
+  const { OK, BAD_REQUEST, INTERNAL_SERVER_ERROR } = StatusCodes;
+
+  try {
+    const { mobileNo } = req.query;
+
+    if (!mobileNo) {
+      return res.status(BAD_REQUEST).json({
+        message:
+          'mobileNo is missing. Please provide mobileNo in the req query parametres',
+      });
+    }
+
+    const user = await User.findOne({ mobileNo });
+
+    if (!user) {
+      return res.status(OK).json({
+        message: 'User not found for this mobile number',
+        exists: false,
+      });
+    }
+
+    return res.status(OK).json({
+      message: 'User found for this mobile number',
+      exists: true,
+      user,
+    });
+  } catch (error) {
+    console.error('Error verifying mobile number', error);
+    res
+      .status(INTERNAL_SERVER_ERROR)
+      .json({ message: 'Internal Server Error', error: error.message });
+  }
+};
+
 export const updateUserData = async (req, res) => {
   const { OK, NOT_FOUND, INTERNAL_SERVER_ERROR } = StatusCodes;
 
   try {
-    const { userId } = req.params;
+    const userId = req.userId;
     const { name, mobileNo, email, gender, dob, location, alternateMobileNo } =
       req.body;
 
     if (!userId) {
-      return res
-        .status(BAD_REQUEST)
-        .json({ message: 'User ID is required in the URL params' });
+      return res.status(BAD_REQUEST).json({ message: 'User ID is required' });
     }
 
     const user = await User.findById(userId);

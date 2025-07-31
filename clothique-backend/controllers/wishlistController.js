@@ -5,7 +5,7 @@ export const getWishlistItems = async (req, res) => {
   const { OK, BAD_REQUEST, INTERNAL_SERVER_ERROR } = StatusCodes;
 
   try {
-    const { userId } = req.params;
+    const userId = req.userId;
 
     if (!userId) {
       return res.status(BAD_REQUEST).json({
@@ -18,7 +18,7 @@ export const getWishlistItems = async (req, res) => {
       'items.product'
     );
 
-    if (!wishlist) {
+    if (!wishlist || wishlist.length === 0) {
       return res
         .status(OK)
         .json({ message: 'Wishlist is empty', items: [], nbHits: 0 });
@@ -41,12 +41,13 @@ export const addToWishlist = async (req, res) => {
   const { OK, CREATED, BAD_REQUEST, INTERNAL_SERVER_ERROR } = StatusCodes;
 
   try {
-    const { userId, productId } = req.body;
+    const userId = req.userId;
+    const { productId } = req.body;
 
-    if (!userId || !productId) {
+    if (!productId) {
       return res.status(BAD_REQUEST).json({
         message:
-          'userId or productId is missing. Please provide both userId and productId in the request body.',
+          'productId is missing. Please provide productId in the request body.',
       });
     }
 
@@ -64,13 +65,11 @@ export const addToWishlist = async (req, res) => {
 
       if (existingItem) {
         await wishlist.populate('items.product');
-        return res
-          .status(OK)
-          .json({
-            message: 'Item already exists in the wishlist',
-            wishlist,
-            nbHits: wishlist.items.length,
-          });
+        return res.status(OK).json({
+          message: 'Item already exists in the wishlist',
+          wishlist,
+          nbHits: wishlist.items.length,
+        });
       }
 
       wishlist.items.push({ product: productId, addedAt: Date.now() });
@@ -98,12 +97,13 @@ export const removeFromWishlist = async (req, res) => {
   const { OK, BAD_REQUEST, NOT_FOUND, INTERNAL_SERVER_ERROR } = StatusCodes;
 
   try {
-    const { userId, productId } = req.body;
+    const userId = req.userId;
+    const { productId } = req.body;
 
-    if (!userId || !productId) {
+    if (!productId) {
       return res.status(BAD_REQUEST).json({
         message:
-          'userId or productId is missing. Please provide both userId and productId in the request body.',
+          'productId is missing. Please provide productId in the request body.',
       });
     }
 
@@ -146,12 +146,14 @@ export const isInWishlist = async (req, res) => {
   const { OK, BAD_REQUEST, INTERNAL_SERVER_ERROR } = StatusCodes;
 
   try {
-    const { userId, productId } = req.query;
+    const userId = req.userId;
+    const { productId } = req.query;
+    console.log(req.user);
 
-    if (!userId || !productId) {
+    if (!productId) {
       return res.status(BAD_REQUEST).json({
         message:
-          'userId or productId is missing. Please provide both userId and productId in the query parameters.',
+          'productId is missing. Please provide productId in the query parameters.',
       });
     }
 

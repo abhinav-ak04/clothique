@@ -7,6 +7,7 @@ import express from 'express';
 import connectDB from './db/connect.js';
 
 import addressRoutes from './routes/addresses.js';
+import authRoutes from './routes/auth.js';
 import cartRoutes from './routes/carts.js';
 import orderRoutes from './routes/orders.js';
 import productRoutes from './routes/products.js';
@@ -17,37 +18,46 @@ const app = express();
 const PORT = process.env.PORT || 8000;
 
 app.use(express.json());
-app.use(
-  cors({
-    origin: 'http://localhost:5173',
-    credentials: true,
-  })
-);
+
+// const allowedOrigins = [
+//   'http://localhost:5173',
+//   'https://clothique-frontend-fapy-j14kpzndf.vercel.app/',
+// ];
+
+// app.use(
+//   cors({
+//     origin: (origin, callback) => {
+//       if (!origin || allowedOrigins.includes(origin)) {
+//         return callback(null, true);
+//       } else {
+//         return callback(new Error('Not allowed by CORS'));
+//       }
+//     },
+//     credentials: true, // only if needed
+//   })
+// );
+
+// app.options('*', cors());
+
+app.use(cors());
 
 app.get('/', (req, res) => {
   res.send('Hi, Welcome to the world of Node.js!');
 });
 
 app.use('/api/products', productRoutes);
-
 app.use('/api/cart', cartRoutes);
-
 app.use('/api/wishlist', wishlistRoutes);
-
 app.use('/api/orders', orderRoutes);
-
 app.use('/api/addresses', addressRoutes);
-
 app.use('/api/user', userRoutes);
+app.use('/api/auth', authRoutes);
 
 const start = async () => {
   try {
-    // Connecting to the database using the connection string from the environment variables
-    // The connection string should be defined in a .env file in the root directory
-    await connectDB(process.env.MONGODB_URL); // Connect to the database
+    await connectDB(process.env.MONGODB_URL);
     console.log('✅ Connected to MongoDB');
 
-    // Start the server and listen on the specified port
     app.listen(PORT, () => {
       console.log(`🌐 Server is running on http://localhost:${PORT}`);
     });
@@ -55,4 +65,5 @@ const start = async () => {
     console.log('❌ Error starting server:', error);
   }
 };
+
 start();

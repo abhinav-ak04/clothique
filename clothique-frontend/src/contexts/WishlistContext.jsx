@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import { useUser } from './UserContext';
 import { getWishlistItems } from '../api/wishlist';
+import { useUser } from './UserContext';
 
 const WishlistContext = createContext();
 
@@ -9,14 +9,12 @@ export function WishlistProvider({ children }) {
   const [wishlist, setWishlist] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // console.log(wishlist);
-
   useEffect(() => {
-    if (!userId) return;
-
-    setLoading(true);
+    const token = localStorage.getItem('token');
+    if (!userId || !token) return;
 
     const fetchWishlistData = async () => {
+      setLoading(true);
       try {
         const items = await getWishlistItems(userId);
         setWishlist(items);

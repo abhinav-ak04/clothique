@@ -2,17 +2,19 @@ import Address from '../models/Address.js';
 import { StatusCodes } from '../utils/status-codes.js';
 
 export const getAllAddresses = async (req, res) => {
-  const { OK, NOT_FOUND, INTERNAL_SERVER_ERROR } = StatusCodes;
+  const { OK, INTERNAL_SERVER_ERROR } = StatusCodes;
 
   try {
-    const { userId } = req.params;
+    const userId = req.userId;
 
     const addresses = await Address.find({ user: userId });
 
-    if (!addresses || addresses.length === 0) {
-      return res
-        .status(NOT_FOUND)
-        .json({ message: 'No address found for the user' });
+    if (addresses.length === 0) {
+      return res.status(OK).json({
+        message: 'No address found for the user',
+        addresses,
+        nbHits: 0,
+      });
     }
 
     return res.status(OK).json({
@@ -56,8 +58,8 @@ export const addAddress = async (req, res) => {
   const { CREATED, BAD_REQUEST, INTERNAL_SERVER_ERROR } = StatusCodes;
 
   try {
+    const userId = req.userId;
     const {
-      userId,
       name,
       mobileNo,
       pincode,
@@ -114,7 +116,7 @@ export const addAddress = async (req, res) => {
 
     await newAddress.save();
 
-    res
+    return res
       .status(CREATED)
       .json({ message: 'Address added successfully', address: newAddress });
   } catch (error) {
@@ -129,7 +131,7 @@ export const setDefaultAddress = async (req, res) => {
   const { OK, BAD_REQUEST, NOT_FOUND, INTERNAL_SERVER_ERROR } = StatusCodes;
 
   try {
-    const { userId } = req.body;
+    const userId = req.userId;
 
     if (!userId) {
       return res.status(BAD_REQUEST).json({

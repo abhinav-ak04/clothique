@@ -1,21 +1,27 @@
-import { useState } from 'react';
-import useAddresses from '../../hooks/useAddresses';
+import { useEffect } from 'react';
+import { useAddresses } from '../../contexts/AddressContext';
 import AlterButton from '../shared/buttons/AlterButton';
+import Loader from '../shared/Loader';
 import AddressForm from './AddressForm';
 import SelectCheckoutAddress from './SelectCheckoutAddress';
 
-function AddressSelector() {
-  const { defaultAddress, otherAddresses } = useAddresses();
+function AddressSelector({ selectedAddress, setSelectedAddress }) {
+  const {
+    defaultAddress,
+    otherAddresses,
+    loading: addressesLoading,
+  } = useAddresses();
 
-  const [selectedAddress, setSelectedAddress] = useState(
-    defaultAddress[0]?.id ?? null,
-  );
+  useEffect(() => {
+    const fetchAddresses = () => {
+      setSelectedAddress(defaultAddress[0]?._id);
+    };
+    fetchAddresses();
+  }, [defaultAddress, setSelectedAddress]);
 
   const isAddressesPresent = !!selectedAddress;
 
-  function handleSubmit(e) {
-    e.preventDefault();
-  }
+  if (addressesLoading) return <Loader />;
 
   return (
     <div
@@ -35,12 +41,14 @@ function AddressSelector() {
             selectedAddress={selectedAddress}
             setSelectedAddress={setSelectedAddress}
           />
-          <SelectCheckoutAddress
-            heading="OTHER ADDRESSES"
-            addressList={otherAddresses}
-            selectedAddress={selectedAddress}
-            setSelectedAddress={setSelectedAddress}
-          />
+          {otherAddresses.length > 0 && (
+            <SelectCheckoutAddress
+              heading="OTHER ADDRESSES"
+              addressList={otherAddresses}
+              selectedAddress={selectedAddress}
+              setSelectedAddress={setSelectedAddress}
+            />
+          )}
         </div>
       ) : (
         <AddressForm />
