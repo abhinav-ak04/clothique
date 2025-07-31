@@ -1,11 +1,20 @@
 import { useState } from 'react';
+import { addAddress } from '../../api/address';
+import { useAddresses } from '../../contexts/AddressContext';
+import { useLoader } from '../../contexts/LoaderContext';
+import { useUser } from '../../contexts/UserContext';
 import { isMobileNoValid } from '../../utils/mobileno-verifier';
 import { isNameValid } from '../../utils/name-verifier';
 import { toTitleCase } from '../../utils/title-case-generator';
 import NavigateButton from '../shared/buttons/NavigateButton';
+import Loader from '../shared/Loader';
 import TextInput from '../shared/TextInput';
 
-function AddressForm({ userId }) {
+function AddressForm() {
+  const { userId, loading: userLoading } = useUser();
+  const { addresses, setAddresses, loading: addressesLoading } = useAddresses();
+  const { isLoading, startLoading, stopLoading } = useLoader();
+
   const [name, setName] = useState('');
   const [mobileNo, setMobileNo] = useState('');
   const [address, setAddress] = useState('');
@@ -18,9 +27,7 @@ function AddressForm({ userId }) {
 
   const [errors, setErrors] = useState({});
 
-  const [isLoading, setIsLoading] = useState(false);
-
-  const apiKey = import.meta.env.VITE_API_KEY;
+  const apiKey = import.meta.env.VITE_PINCODE_API_KEY;
   if (!apiKey) {
     console.error(
       'API key is missing. Please set VITE_API_KEY in your .env file.',
@@ -38,7 +45,7 @@ function AddressForm({ userId }) {
     setIsDefault(true);
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
 
     const newErrors = {};
@@ -59,8 +66,32 @@ function AddressForm({ userId }) {
       return;
     }
 
-    console.log('Form submitted successfully');
-    resetStates();
+    startLoading();
+    try {
+      const newAddress = {
+        userId,
+        name,
+        mobileNo,
+        pincode,
+        addressLine: address,
+        locality,
+        city,
+        state,
+        addressType,
+        isDefault,
+      };
+      const { address: addedAddress } = await addAddress(newAddress);
+
+      const newAddressList = [...addresses, addedAddress];
+      setAddresses(newAddressList);
+
+      console.log('Form submitted successfully', newAddress);
+      resetStates();
+    } catch (error) {
+      console.error('Error adding new address', error);
+    } finally {
+      stopLoading();
+    }
   }
 
   function clearCityState() {
@@ -83,7 +114,7 @@ function AddressForm({ userId }) {
       return;
     }
 
-    setIsLoading(true);
+    startLoading();
     try {
       const res = await fetch(
         `https://api.data.gov.in/resource/5c2f62fe-5afa-4119-a499-fec9d604d5bd?api-key=${apiKey}&format=json&filters[pincode]=${pincode}`,
@@ -105,9 +136,11 @@ function AddressForm({ userId }) {
       newErrors.pincode = 'Error fetching city/state. Please try again.';
       clearCityState();
     } finally {
-      setIsLoading(false);
+      stopLoading();
     }
   }
+
+  if (userLoading || addressesLoading || isLoading) return <Loader />;
 
   return (
     <form
@@ -199,15 +232,15 @@ function AddressForm({ userId }) {
         <div
           className="flex cursor-pointer items-center gap-2.5"
           onClick={() => {
-            addressType !== 'Office' && setAddressType('Office');
+            addressType !== 'Work' && setAddressType('Work');
           }}
         >
           <input
             type="radio"
-            checked={addressType === 'Office'}
+            checked={addressType === 'Work'}
             className={`checked:bg-core-theme outline-core-theme h-[11px] w-[11px] cursor-pointer appearance-none rounded-full outline-[1.5px] outline-offset-[3.2px] transition-opacity outline-solid checked:border-transparent`}
           />
-          <p className="text-zinc-700">Office</p>
+          <p className="text-zinc-700">Work</p>
         </div>
       </div>
       <label className="relative mb-14 block w-full cursor-pointer pl-7 text-[14px] leading-none">
@@ -225,7 +258,7 @@ function AddressForm({ userId }) {
         <NavigateButton
           type="submit"
           onClick={handleSubmit}
-          disabled={isLoading}
+          disabled={userLoading || addressesLoading || isLoading}
         >
           SAVE ADDRESS
         </NavigateButton>

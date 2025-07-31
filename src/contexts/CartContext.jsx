@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { getCartItems } from '../api/cart';
-import { useUser } from './UserContext';
 import { transformCartItems } from '../utils/transform-cart';
+import { useUser } from './UserContext';
 
 const CartContext = createContext();
 
@@ -11,11 +11,11 @@ export function CartProvider({ children }) {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!userId) return;
-
-    setLoading(true);
+    const token = localStorage.getItem('token');
+    if (!userId || !token) return;
 
     const fetchCartData = async () => {
+      setLoading(true);
       try {
         const items = await getCartItems(userId);
         setCart(transformCartItems(items));

@@ -1,10 +1,116 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FaRegMoneyBillAlt } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
+import { getAddressById } from '../../api/address';
+import { getCartItems, removeCartItem } from '../../api/cart';
+import { placeOrder } from '../../api/order';
+import { useCart } from '../../contexts/CartContext';
+import { useLoader } from '../../contexts/LoaderContext';
+import { useOrder } from '../../contexts/OrderContext';
+import { useUser } from '../../contexts/UserContext';
+import { getPriceSummary } from '../../utils/price-calculator';
+import { transformCartItems } from '../../utils/transform-cart';
 import NavigateButton from '../shared/buttons/NavigateButton';
+import Loader from '../shared/Loader';
 
-function PaymentMethods() {
+function PaymentMethods({ selectedItems, donation, selectedAddress }) {
+  const [orderAddress, setOrderAddress] = useState(null);
+  const navigate = useNavigate();
+
+  const { userId, loading: userLoading } = useUser();
+  const { cart, setCart, loading: cartLoading } = useCart();
+  const {
+    orders: currentOrders,
+    setOrders,
+    loading: ordersLoading,
+  } = useOrder();
+  const { isLoading, startLoading, stopLoading } = useLoader();
+
+  useEffect(() => {
+    const fetchAddress = async () => {
+      try {
+        startLoading();
+        const { address } = await getAddressById(selectedAddress);
+        setOrderAddress(address);
+      } catch (error) {
+        console.error('Error fetching address details', error);
+      } finally {
+        stopLoading();
+      }
+    };
+    if (selectedAddress) fetchAddress();
+  }, [selectedAddress]);
+
+  async function removeCartItems() {
+    if (selectedItems.length === 0) return;
+
+    startLoading();
+    try {
+      for (const { product, selectedSize } of selectedItems) {
+        await removeCartItem({
+          userId,
+          productId: product._id,
+          size: selectedSize,
+        });
+      }
+      const newCart = await getCartItems(userId);
+      setCart(transformCartItems(newCart));
+    } catch (error) {
+      console.error('Error removing from the cart', error);
+    } finally {
+      stopLoading();
+    }
+  }
+
+  async function handlePlaceOrder() {
+    const products = selectedItems.map(
+      ({ product, quantity, selectedSize }) => {
+        return {
+          product: product._id,
+          quantity,
+          size: selectedSize,
+        };
+      },
+    );
+
+    const { finalPrice } = getPriceSummary(selectedItems, donation);
+
+    const { addressLine, locality, city, state, pincode } = orderAddress;
+    const addressString = `${addressLine}, ${locality}, ${city}, ${state} - ${pincode}`;
+
+    const newOrder = {
+      userId,
+      products,
+      totalAmount: finalPrice,
+      deliveryAddress: addressString,
+    };
+
+    startLoading();
+    try {
+      const { order } = await placeOrder(newOrder);
+
+      // After the order is placed:
+      // Remove the cart items which were ordered (selectedItems)
+      await removeCartItems();
+
+      // Update the Order-context
+      const newOrders = [...currentOrders, order];
+      setOrders(newOrders);
+
+      // Navigate to the home page}
+      navigate('/');
+    } catch (error) {
+      console.error('Error placing order', error);
+    } finally {
+      stopLoading();
+    }
+  }
+
   const [payemntMethod, setPaymentMethod] = useState(null);
   const isSelected = (method) => payemntMethod === method;
+
+  if (userLoading || cartLoading || ordersLoading || isLoading)
+    return <Loader />;
 
   return (
     <div className={`w-[67%] border-r-1 border-zinc-200 pt-5 pr-8`}>
@@ -36,7 +142,9 @@ function PaymentMethods() {
             </p>
           </div>
           {isSelected('cod') && (
-            <NavigateButton onClick="">PLACE ORDER </NavigateButton>
+            <NavigateButton onClick={handlePlaceOrder}>
+              PLACE ORDER
+            </NavigateButton>
           )}
         </div>
       </div>
