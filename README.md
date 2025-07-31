@@ -2,7 +2,8 @@
 
 🚀 [Live Demo](https://clothique-frontend-fapy.vercel.app/)
 
-Clothique is a modern, sleek, and responsive e-commerce platform built from scratch to simulate a real-world online fashion store experience. From intelligent search to seamless cart handling, it's designed to **impress, convert, and retain**.
+**Clothique** is a **full-stack e-commerce web application inspired by Myntra**, built to deliver a seamless shopping experience from search to checkout. With powerful filtering, intuitive UI, and robust backend support, it mirrors the essential features of a modern online fashion store.  
+From intelligent search to dynamic cart management and order tracking, Clothique is crafted to **impress, convert, and retain**.
 
 ---
 
@@ -10,7 +11,7 @@ Clothique is a modern, sleek, and responsive e-commerce platform built from scra
 
 - **Frontend:** React.js, Tailwind CSS, React Router, Context API
 - **Backend:** Node.js, Express.js, MongoDB, Mongoose
-- **Authentication:** JWT
+- **Authentication:** JWT-based login using mobile number and password
 - **Hosting:** Vercel (Frontend), Render (Backend)
 
 ---
@@ -22,7 +23,7 @@ Clothique is a modern, sleek, and responsive e-commerce platform built from scra
 - 🧺 **Smart Cart Management:** Add/edit/remove items and adjust sizes/quantities dynamically.
 - ❤️ **Wishlist Management:** Save products you love to revisit later.
 - 📍 **Address Book:** Add, edit, and delete multiple delivery addresses.
-- 🔐 **OTP-based Secure Login:** Login quickly with your mobile number—no passwords.
+- 🔐 **Secure Authentication:** JWT-based login using mobile number and password.
 - 👤 **User Profile:** Maintain and update your personal information anytime.
 - 🧾 **Order History:** View all your past orders with timestamps and product details.
 - ✅ **Responsive Design:** Fully optimized for mobile and desktop experiences.
